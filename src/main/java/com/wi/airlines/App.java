@@ -9,7 +9,6 @@ import java.util.*;
  */
 public class App implements BookingApp {
 
-
     @Override
     public Seat bookNext(Passenger p) throws Exception {
         int currentRow = 0;
@@ -37,25 +36,21 @@ public class App implements BookingApp {
     private void initSeats() {
         Iterator<Block> itr = blocks.iterator();
         while (itr.hasNext()) {
-
-        }
-
-    }
-
-    private void initSeatForBlock(Block block) {
-        for (int i = 0; i < block.cols; i++) {
-            for (int j = 0; j < block.rows; j++) {
-                String seatNumber = i + "" + j;
-                Seat s = new Seat(block.code, seatNumber);
-                BlockMeta.SEAT_TYPE type = null;
-                if (i > 0 && i < 2) {
-                    type = BlockMeta.SEAT_TYPE.MIDDLE;
-                } else if (i == 0) {
-
-                } else { // =2
-
+            Block block = itr.next();
+            for (int i = 0; i < block.cols; i++) {
+                for (int j = 0; j < block.rows; j++) {
+                    String seatNumber = i + "" + j;
+                    Seat s = new Seat(block.code, seatNumber);
+                    BlockMeta.SEAT_TYPE type = null;
+                    if (j > 0 && j < block.rows - 1) {
+                        type = BlockMeta.SEAT_TYPE.MIDDLE;
+                    } else if (j == 0) {
+                        type = block.meta.mostLeft ? BlockMeta.SEAT_TYPE.WINDOW : BlockMeta.SEAT_TYPE.AISLE;
+                    } else if (j == block.rows - 1) { // =last
+                        type = itr.hasNext() ? BlockMeta.SEAT_TYPE.AISLE : BlockMeta.SEAT_TYPE.WINDOW;
+                    }
+                    block.addSeat(s, type);
                 }
-                block.addSeat(s, type);
             }
         }
     }
@@ -77,6 +72,7 @@ public class App implements BookingApp {
             }
             if (i == 0) { // FIRST
                 meta.addSeatType(BlockMeta.SEAT_TYPE.WINDOW);
+                meta.mostLeft = true;
                 if (cols == 1) {
                     continue;
                 } else if (arr.length > 1) {

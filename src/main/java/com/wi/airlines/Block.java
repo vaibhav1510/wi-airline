@@ -11,7 +11,7 @@ public class Block {
     public char code;
     private int seatsCount;
 
-    private BlockMeta meta;
+    public BlockMeta meta;
 
     private List<Seat> windowSeats = new ArrayList<>();
     private List<Seat> aisleSeats = new ArrayList<>();

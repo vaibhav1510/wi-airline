@@ -11,6 +11,7 @@ import java.util.Set;
 public class BlockMeta {
 
     private Block block;
+    public boolean mostLeft;
     private Set<SEAT_TYPE> seatTypes = new HashSet<>();
 
     enum SEAT_TYPE {
