@@ -1,22 +1,42 @@
 package com.wi.airlines;
 
-import com.sun.org.apache.xerces.internal.xs.datatypes.ByteList;
+import com.sun.javafx.collections.ImmutableObservableList;
+import org.omg.CORBA.INTERNAL;
 
 import java.util.*;
 
 /**
  * Created by cb-vaibhav on 07/10/18.
  */
-public class App implements BookingApp {
+public class App {
 
-    @Override
+    private static App inst;
+
+    public static App createInst(TreeSet<Block> blocks) {
+        if (inst != null) {
+            return inst;
+        }
+        inst = new App(blocks);
+        return inst;
+    }
+
+    TreeSet<Block> blocks = new TreeSet<>();
+    private TreeMap<Integer, List<Seat>> seatMatrix = new TreeMap<>();
+
+    private App(TreeSet<Block> blocks) {
+        this.blocks = blocks;
+    }
+
+    Map<Seat, Passenger> bookedSeats = new HashMap<>();
+
+
     public Seat bookNext(Passenger p) throws Exception {
         int currentRow = 0;
         int maxRows = Integer.MAX_VALUE;
         while (currentRow < maxRows) {
             for (Block b : blocks) {
                 maxRows = b.rows;
-                String seatNumber = null;
+                int seatNumber = 1;
                 Seat s = new Seat(b.code, seatNumber);
                 return s;
             }
@@ -25,104 +45,56 @@ public class App implements BookingApp {
         return null;
     }
 
-    TreeSet<Block> blocks = new TreeSet<>();
-    Map<Seat, Passenger> bookedSeats = new HashMap<>();
 
-    public App(int[][] arr) {
-        initBlocks(arr);
-        initSeats();
-    }
+    public void printSeatMatrix() throws Exception {
+        for (int row : seatMatrix.keySet()) {
+            List<Seat> seats = seatMatrix.get(row);
+            char blockNumber = '@';
 
-    private void initSeats() {
-        Iterator<Block> itr = blocks.iterator();
-        while (itr.hasNext()) {
-            Block block = itr.next();
-            for (int i = 0; i < block.cols; i++) {
-                for (int j = 0; j < block.rows; j++) {
-                    String seatNumber = i + "" + j;
-                    Seat s = new Seat(block.code, seatNumber);
-                    BlockMeta.SEAT_TYPE type = null;
-                    if (j > 0 && j < block.rows - 1) {
-                        type = BlockMeta.SEAT_TYPE.MIDDLE;
-                    } else if (j == 0) {
-                        type = block.meta.mostLeft ? BlockMeta.SEAT_TYPE.WINDOW : BlockMeta.SEAT_TYPE.AISLE;
-                    } else if (j == block.rows - 1) { // =last
-                        type = itr.hasNext() ? BlockMeta.SEAT_TYPE.AISLE : BlockMeta.SEAT_TYPE.WINDOW;
-                    }
-                    block.addSeat(s, type);
+            for (Seat seat : seats) {
+                boolean blockChange = blockNumber != seat.block;
+                blockNumber = seat.block;
+                if (blockChange) {
+                    String braces = blockNumber == 'A' ? "[" : "] [";
+                    System.out.print(braces);
+                }
+
+                String placeHolder = blockChange ? "%s" : "%4s";
+                if (bookedSeats.containsKey(seat)) {
+                    System.out.printf(placeHolder, bookedSeats.get(seat).id());
+                } else {
+//                    System.out.printf(placeHolder, "XX");
+                    System.out.printf("%4s", (blockNumber + seat.seatNumber.toString()));
                 }
             }
+            System.out.println("]");
         }
     }
 
-    private void initBlocks(int[][] arr) {
-        int blockCode = 65;
-        Block block = null;
+
+    private void addToSeatMatrix(int row, Seat seat) {
+        if (seatMatrix.containsKey(row)) {
+            seatMatrix.get(row).add(seat);
+            return;
+        }
+        List<Seat> seats = new ArrayList<>();
+        seats.add(seat);
+        seatMatrix.put(row, seats);
+    }
+
+    public App(int[][] arr) {
+        int blockCode = 65;// A,B,C
         for (int i = 0; i < arr.length; i++) {
             int cols = arr[i][0];
             int rows = arr[i][1];
-            block = new Block((char) blockCode++, cols, rows);
-            BlockMeta meta = new BlockMeta(block);
-            if (i != 0 && i != arr.length - 1) {
-                meta.addSeatType(BlockMeta.SEAT_TYPE.AISLE);
-                if (cols > 2) {
-                    meta.addSeatType(BlockMeta.SEAT_TYPE.MIDDLE);
-                }
-                continue;
-            }
-            if (i == 0) { // FIRST
-                meta.addSeatType(BlockMeta.SEAT_TYPE.WINDOW);
-                meta.mostLeft = true;
-                if (cols == 1) {
-                    continue;
-                } else if (arr.length > 1) {
-                    if (cols == 2) {
-                        meta.addSeatType(BlockMeta.SEAT_TYPE.AISLE);
-                    } else {
-                        meta.addSeatType(BlockMeta.SEAT_TYPE.AISLE);
-                        meta.addSeatType(BlockMeta.SEAT_TYPE.MIDDLE);
-                    }
+            Integer counter = 1;
+            for (int m = 0; m < cols; m++) {
+                for (int n = 0; n < rows; n++) {
+                    Seat seat = new Seat((char) blockCode, counter++);
+                    addToSeatMatrix(m + 1, seat);
                 }
             }
-            if (i == arr.length - 1 && i != 0) { // LAST
-                meta.addSeatType(BlockMeta.SEAT_TYPE.WINDOW);
-                if (cols == 1) {
-                    continue;
-                } else if (arr.length > 1) {
-                    if (cols == 2) {
-                        meta.addSeatType(BlockMeta.SEAT_TYPE.AISLE);
-                    } else {
-                        meta.addSeatType(BlockMeta.SEAT_TYPE.AISLE);
-                        meta.addSeatType(BlockMeta.SEAT_TYPE.MIDDLE);
-                    }
-                }
-            }
-            block.blockMeta(meta);
+            blockCode++;
         }
-        blocks.add(block);
-    }
-
-
-    private TreeMap<Block, Map<String, Passenger>> seatMatrix = new TreeMap<>();
-
-    @Override
-    public void printSeatMatrix() throws Exception {
-        //        for (int block = 0; block < blocks.size(); block++) {
-//            System.out.println("BLOCK-" + block);
-//            int cols = arr[block][0];
-//            int rows = arr[block][1];
-//            Map<String, Passenger> matrix = seatMatrix.get(block);
-//            for (int i = 0; i < cols; i++) {
-//                for (int j = 0; j < rows; j++) {
-//                    String seatNumber = i + "" + j;
-//                    if (matrix == null || !matrix.containsKey(seatNumber)) {
-//                        System.out.printf("%3s", "xx");
-//                    } else {
-//                        System.out.printf("%3s", matrix.get(seatNumber).id());
-//                    }
-//                }
-//                System.out.println();
-//            }
-//        }
     }
 }

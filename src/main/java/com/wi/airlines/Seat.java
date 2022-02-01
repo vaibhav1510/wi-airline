@@ -5,10 +5,10 @@ package com.wi.airlines;
  */
 public class Seat {
 
-    private char block;
-    private String seatNumber;
+    public char block;
+    public Integer seatNumber;
 
-    public Seat(char block, String seatNumber) {
+    public Seat(char block, Integer seatNumber) {
         this.block = block;
         this.seatNumber = seatNumber;
     }
@@ -21,7 +21,7 @@ public class Seat {
 
     @Override
     public int hashCode() {
-        String code = block + seatNumber;
-        return Integer.parseInt(code);
+        int code = (int) block + seatNumber;
+        return code;
     }
 }

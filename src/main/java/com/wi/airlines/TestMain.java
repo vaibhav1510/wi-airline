@@ -5,9 +5,9 @@ package com.wi.airlines;
  */
 public class TestMain {
 
-    public static void main(String[] args) throws Exception {
+    public static void main1(String[] args) throws Exception {
         int[][] arr = {{3, 2}, {3, 4}, {2, 3}};
-        BookingApp app = new AppLoader().startApp(arr);
+        App app = new AppLoader().startApp(arr);
 
         int numOfPassangers = 21;
         for (int i = 0; i < numOfPassangers; i++) {
@@ -18,7 +18,11 @@ public class TestMain {
                 System.exit(0);
             }
         }
+    }
 
+    public static void main(String[] args) throws Exception {
+        int[][] arr = {{3, 2}, {3, 4}, {2, 3}};
+        new App(arr).printSeatMatrix();
     }
 
 }

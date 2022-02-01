@@ -47,11 +47,12 @@ public class Block {
     }
 
     private void init(int cols, int rows, boolean areWindowSeats) {
+        int counter =1;
         for (int i = 0; i < cols; i++) {
             for (int j = 0; j < rows; j++) {
                 String seatNumber = i + "" + j;
                 if (i == 0 && areWindowSeats) {
-                    windowSeats.add(new Seat(code, seatNumber));
+                    windowSeats.add(new Seat(code, counter++));
                     continue;
                 }
                 if (i == cols - 1 && areWindowSeats) {
